@@ -1,6 +1,7 @@
 import datetime
 import re
 from typing import Dict, List, Optional, Iterable, Union
+import enum
 
 from keepachangelog._versioning import (
     actual_version,
@@ -9,6 +10,13 @@ from keepachangelog._versioning import (
     InvalidSemanticVersion,
 )
 
+
+class LineType(enum.Enum):
+    LINK = enum.auto()
+    RELEASE = enum.auto()
+    CATEGORY = enum.auto()
+    EMPTY = enum.auto()
+    OTHER = enum.auto()
 
 def is_release(line: str) -> bool:
     return line.startswith("## ")
@@ -63,11 +71,7 @@ def is_link(line: str) -> bool:
 
 
 def add_information(category: List[str], line: str):
-    m = re.search(r'^[\-*]\s*(.*)', line)
-    if m:
-        line = m.group(1)
-
-    category.append(line.rstrip(' -'))
+    return category.append(line)
 
 
 def to_dict(
@@ -94,18 +98,25 @@ def _to_dict(change_log: Iterable[str], show_unreleased: bool) -> Dict[str, dict
     urls = {}
     current_release = {}
     category = []
+    previous_line = LineType.OTHER
     for line in change_log:
-        line = line.strip("\n")
+        line = line.rstrip("\n")
 
         if is_release(line):
+            previous_line = LineType.RELEASE
             current_release = add_release(changes, line)
             category = current_release.setdefault("uncategorized", [])
         elif is_category(line):
+            previous_line = LineType.CATEGORY
             category = add_category(current_release, line)
         elif is_link(line):
+            previous_line = LineType.LINK
             link_match = link_pattern.fullmatch(line)
             urls[link_match.group(1).lower()] = link_match.group(2)
-        elif line:
+        elif not line and previous_line in (LineType.RELEASE, LineType.CATEGORY, LineType.LINK, LineType.EMPTY):
+            previous_line = LineType.EMPTY
+        else:
+            previous_line = LineType.OTHER
             add_information(category, line)
 
     # Add url for each version (create version if not existing)
@@ -156,10 +167,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
         uncategorized = current_release.get("uncategorized", [])
         for category_content in uncategorized:
-            if re.match(r'^\s+[\-*]', category_content):
-                content += f"\n{category_content}"
-            else:
-                content += f"\n-   {category_content}"
+            content += f"\n{category_content}"
         if uncategorized:
             content += "\n"
 
@@ -170,10 +178,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
             content += f"\n### {category_name.capitalize()}\n"
 
             for categorized in category_content:
-                if re.match(r'^\s+[\-*]', categorized):
-                    content += f"\n{categorized}"
-                else:
-                    content += f"\n-   {categorized}"
+                content += f"\n{categorized}"
 
             content += "\n"
 
