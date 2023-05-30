@@ -131,8 +131,16 @@ def _to_dict(change_log: Iterable[str], show_unreleased: bool) -> Dict[str, dict
     return changes
 
 
+
 def from_dict(changes: Dict[str, dict]):
+    _version_regex = r'v?([0-9]+(?:\.[0-9]+){0,2})'
+
+    def version_to_title(version: str):
+        if re.match(_version_regex, version, re.IGNORECASE):
+            return version
+        return version.capitalize()
     content = """# Changelog
+
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
@@ -140,7 +148,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
     for current_release in changes.values():
         metadata = current_release["metadata"]
-        content += f"\n## [{metadata['version'].capitalize()}]"
+        content += f"\n## [{version_to_title(metadata['version'])}]"
 
         if metadata.get("release_date"):
             content += f" - {metadata['release_date']}"
@@ -173,7 +181,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
         metadata = current_release["metadata"]
         if not metadata.get("url"):
             continue
-        urls_content.append(f"[{metadata['version'].capitalize()}]: {metadata['url']}")
+        urls_content.append(f"[{version_to_title(metadata['version'])}]: {metadata['url']}")
 
     if urls_content:
         content += "\n"
