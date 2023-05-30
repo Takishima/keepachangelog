@@ -63,7 +63,11 @@ def is_link(line: str) -> bool:
 
 
 def add_information(category: List[str], line: str):
-    category.append(line.lstrip(" *-").rstrip(" -"))
+    m = re.search(r'^[\-*]\s*(.*)', line)
+    if m:
+        line = m.group(1)
+
+    category.append(line.rstrip(' -'))
 
 
 def to_dict(
@@ -91,7 +95,7 @@ def _to_dict(change_log: Iterable[str], show_unreleased: bool) -> Dict[str, dict
     current_release = {}
     category = []
     for line in change_log:
-        line = line.strip(" \n")
+        line = line.strip("\n")
 
         if is_release(line):
             current_release = add_release(changes, line)
@@ -143,7 +147,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
         uncategorized = current_release.get("uncategorized", [])
         for category_content in uncategorized:
-            content += f"\n* {category_content}"
+            if re.match(r'^\s+[\-*]', category_content):
+                content += f"\n{category_content}"
+            else:
+                content += f"\n-   {category_content}"
         if uncategorized:
             content += "\n"
 
@@ -154,7 +161,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
             content += f"\n### {category_name.capitalize()}"
 
             for categorized in category_content:
-                content += f"\n- {categorized}"
+                if re.match(r'^\s+[\-*]', categorized):
+                    content += f"\n{categorized}"
+                else:
+                    content += f"\n-   {categorized}"
 
             content += "\n"
 
