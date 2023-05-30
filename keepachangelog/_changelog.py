@@ -152,6 +152,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
         if metadata.get("release_date"):
             content += f" - {metadata['release_date']}"
+        content += '\n'
 
         uncategorized = current_release.get("uncategorized", [])
         for category_content in uncategorized:
@@ -166,7 +167,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
             if category_name in ["metadata", "uncategorized"]:
                 continue
 
-            content += f"\n### {category_name.capitalize()}"
+            content += f"\n### {category_name.capitalize()}\n"
 
             for categorized in category_content:
                 if re.match(r'^\s+[\-*]', categorized):
@@ -184,9 +185,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
         urls_content.append(f"[{version_to_title(metadata['version'])}]: {metadata['url']}")
 
     if urls_content:
-        content += "\n"
-        content += "\n".join(urls_content)
-        content += "\n"
+        content += '\n'
+        content += "\n\n".join(urls_content)
 
     return content
 
