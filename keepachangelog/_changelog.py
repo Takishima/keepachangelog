@@ -278,6 +278,7 @@ def release_version(
                         line.replace(new_version, current_version)
                         .replace(unreleased_tag, new_tag)
                         .replace("Unreleased", new_version)
+                        .replace("unreleased", new_version)
                     )
                 # Consider that there is no way to know how to create a link to compare versions
                 else:
