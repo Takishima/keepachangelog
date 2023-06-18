@@ -251,7 +251,7 @@ def release(changelog_path: str, new_version: str = None) -> Optional[str]:
 def release_version(
     changelog_path: str, current_version: Optional[str], new_version: str
 ):
-    unreleased_link_pattern = re.compile(r"^\[Unreleased\]: (.*)$", re.DOTALL)
+    unreleased_link_pattern = re.compile(r"^\[[Uu]nreleased\]: (.*)$", re.DOTALL)
     lines = []
     with open(changelog_path, encoding="utf-8") as change_log:
         for line in change_log.readlines():
